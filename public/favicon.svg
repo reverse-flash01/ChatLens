@@ -1,0 +1,25 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Main Chat Bubble Shape -->
+  <path d="M64 16 C 24 16, 16 44, 16 64 C 16 88, 32 100, 64 100 C 72 100, 80 98, 88 94 L 108 108 L 100 88 C 108 80, 112 72, 112 64 C 112 40, 104 16, 64 16 Z" 
+        fill="url(#grad1)" />
+        
+  <!-- White Magnifying Lens & Handle Cutout Effect -->
+  <!-- We'll simulate a knockout by drawing a shape with a different color, or just pure white since tabs contrast well enough -->
+  <circle cx="60" cy="56" r="18" fill="#0A0A0F" />
+  <circle cx="60" cy="56" r="12" fill="url(#grad1)" />
+  <line x1="72" y1="68" x2="86" y2="82" stroke="#0A0A0F" stroke-width="8" stroke-linecap="round" />
+</svg>
