@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, A
 import { computeStats } from '../utils/stats';
 import { format } from 'date-fns';
 import { MessageCircle, Image as ImageIcon, Calendar, Clock, Smile } from 'lucide-react';
+import { AdvancedAnalytics } from './AdvancedAnalytics';
 
 const StatCard = ({ icon: Icon, title, value, subtitle }) => (
   <div className="stat-card glass-card">
@@ -238,6 +239,9 @@ const Dashboard = ({ data }) => {
           </div>
         </div>
       </div>
+      
+      {/* Advanced Analytics Modules */}
+      <AdvancedAnalytics stats={stats} participants={data.participants} />
     </div>
   );
 };
