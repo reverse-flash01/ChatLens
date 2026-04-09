@@ -13,8 +13,9 @@ const InfoTooltip = ({ text }) => (
   </div>
 );
 
-export const AdvancedAnalytics = ({ stats, participants }) => {
+export const AdvancedAnalytics = ({ stats, participants, onJump }) => {
   const [wordCloudView, setWordCloudView] = useState('all');
+  const [showAllBursts, setShowAllBursts] = useState(false);
   const printRef = useRef(null);
 
   if (!stats || !stats.words) return null;
@@ -208,6 +209,103 @@ export const AdvancedAnalytics = ({ stats, participants }) => {
     );
   };
 
+  // Render Burst Detection
+  const renderBursts = () => {
+    if (!stats.bursts || stats.bursts.total === 0) return null;
+
+    const initiatorsData = Object.entries(stats.bursts.initiators).map(([name, val]) => ({ name, value: val }));
+    const topInitiator = initiatorsData.sort((a,b) => b.value - a.value)[0]?.name || "N/A";
+    const sortedBursts = [...stats.bursts.timeline].sort((a,b) => b.msgs.length - a.msgs.length);
+
+    return (
+       <div className="burst-card glass-card fade-in" style={{ gridColumn: '1 / -1', width: '100%', marginTop: '1rem', padding: '1.5rem' }}>
+         <div className="panel-header" style={{ position: 'relative' }}>
+          <Zap className="panel-icon burst-icon" fill="var(--primary)" />
+          <h2 className="panel-title">Rapid-Fire Bursts <InfoTooltip text="Detects intense messaging sessions where at least 10 messages were exchanged with less than 5 minutes between each text." /></h2>
+        </div>
+        
+        <div className="burst-grid">
+           <div className="insight-box highlight-box">
+              <h5>Total Bursts Detected</h5>
+              <p className="large-stat pulse-number">{stats.bursts.total}</p>
+              <p className="small-detail">You had {stats.bursts.total} intense chat sessions.</p>
+           </div>
+           
+           <div className="insight-box">
+              <h5>Longest Marathon</h5>
+              <p className="large-stat">
+                 {stats.bursts.longestBurst ? Math.round(stats.bursts.longestBurst.durationMs / 60000) : 0} <span className="mute">mins</span>
+              </p>
+              <p className="small-detail">Straight continuous texting!</p>
+           </div>
+
+           <div className="insight-box">
+              <h5>Busiest Spike</h5>
+              <p className="large-stat">
+                 {stats.bursts.busiestBurst ? stats.bursts.busiestBurst.msgs.length : 0} <span className="mute">texts</span>
+              </p>
+              <p className="small-detail">In a single burst incident.</p>
+           </div>
+
+           <div className="insight-box">
+              <h5>Top Instigator</h5>
+              <p className="large-stat">{topInitiator}</p>
+              <p className="small-detail">Usually starts the excitement.</p>
+           </div>
+        </div>
+
+        {sortedBursts.length > 0 && (
+          <div className="burst-highlight-panel">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h4 style={{ margin: 0 }}>{showAllBursts ? "Burst Catalog (Ranked by Volume)" : "Snapshot of The Heaviest Burst"}</h4>
+              {sortedBursts.length > 1 && (
+                <button 
+                  onClick={() => setShowAllBursts(!showAllBursts)}
+                  className="btn-secondary"
+                  style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}
+                >
+                  {showAllBursts ? "Close Catalog" : "View All Bursts"}
+                </button>
+              )}
+            </div>
+
+            <div className="bursts-list" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxHeight: showAllBursts ? '400px' : 'auto', overflowY: showAllBursts ? 'auto' : 'visible', paddingRight: showAllBursts ? '1rem' : '0' }}>
+               {(showAllBursts ? sortedBursts : [sortedBursts[0]]).filter(Boolean).map((burst, idx) => (
+                  <div key={burst.startMs + idx} className="burst-item-container">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>
+                      <span className="burst-date-tag" style={{ marginBottom: 0, marginTop: 0 }}>
+                        #{idx + 1} - {format(new Date(burst.startMs), 'MMM d, yyyy @ h:mm a')}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                          {burst.msgs.length} texts • {Math.max(1, Math.round(burst.durationMs / 60000))} mins
+                        </span>
+                        {onJump && (
+                          <button onClick={() => onJump(burst.startMs)} className="btn-primary" style={{ fontSize: '0.7rem', padding: '0.2rem 0.6rem' }}>
+                            View in Chat
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="burst-timeline">
+                       {burst.msgs.slice(0, Math.min(5, burst.msgs.length)).map((msg, i) => (
+                         <div key={`${msg.timestamp_ms}-${i}`} className="burst-msg-chip">
+                            <strong>{msg.sender_name}:</strong> {msg.content || '[Media Attached]'}
+                         </div>
+                       ))}
+                       {burst.msgs.length > 5 && (
+                         <div className="burst-msg-chip more-chip">... and {burst.msgs.length - 5} more messages!</div>
+                       )}
+                    </div>
+                  </div>
+               ))}
+            </div>
+          </div>
+        )}
+       </div>
+    );
+  };
+
   // Export Screenshot Feature
   const handleExport = () => {
     if (printRef.current === null) return;
@@ -237,6 +335,7 @@ export const AdvancedAnalytics = ({ stats, participants }) => {
           {renderResponseTimes()}
           {renderRhythm()}
         </div>
+        {renderBursts()}
         {renderStreak()}
         {renderRatio()}
       </div>

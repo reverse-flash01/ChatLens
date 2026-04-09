@@ -30,7 +30,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-const Dashboard = ({ data }) => {
+const Dashboard = ({ data, onJump }) => {
   const minTime = data.messages[0]?.timestamp_ms || 0;
   const maxTime = data.messages[data.messages.length - 1]?.timestamp_ms || Date.now();
 
@@ -241,7 +241,7 @@ const Dashboard = ({ data }) => {
       </div>
       
       {/* Advanced Analytics Modules */}
-      <AdvancedAnalytics stats={stats} participants={data.participants} />
+      <AdvancedAnalytics stats={stats} participants={data.participants} onJump={onJump} />
     </div>
   );
 };

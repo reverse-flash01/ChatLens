@@ -9,6 +9,7 @@ function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [chatData, setChatData] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [jumpDateMs, setJumpDateMs] = useState(null);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -37,7 +38,7 @@ function App() {
         {chatData && (
           <div className="nav-tabs glass-panel-inner">
             <button 
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => { setActiveTab('dashboard'); setJumpDateMs(null); }}
               className={`nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
             >
               <BarChart2 size={16} />
@@ -86,9 +87,15 @@ function App() {
             </div>
 
             {activeTab === 'dashboard' ? (
-              <Dashboard data={chatData} />
+              <Dashboard 
+                data={chatData} 
+                onJump={(ts) => {
+                  setJumpDateMs(ts);
+                  setActiveTab('viewer');
+                }} 
+              />
             ) : (
-              <ChatViewer data={chatData} />
+              <ChatViewer data={chatData} jumpDateMs={jumpDateMs} />
             )}
           </div>
         )}

@@ -24,6 +24,9 @@ export const computeStats = (messages) => {
   let conversations = [];
   let currentConversation = { startMs: messages[0].timestamp_ms, starter: messages[0].sender_name, ender: null, messageCount: 0, endMs: messages[0].timestamp_ms };
   
+  let bursts = [];
+  let currentBurst = { msgs: [messages[0]], startMs: messages[0].timestamp_ms, initiator: messages[0].sender_name };
+
   const dailyActivity = {}; // { 'YYYY-MM-DD': count }
   
   let previousMessage = null;
@@ -73,7 +76,7 @@ export const computeStats = (messages) => {
     stats.messagesByHourOfDay[hour] += 1;
     dailyActivity[dateString] = (dailyActivity[dateString] || 0) + 1;
 
-    // Response Times & Conversations
+    // Response Times, Conversations, & Bursts
     if (previousMessage) {
       const timeDiff = msg.timestamp_ms - previousMessage.timestamp_ms;
       
@@ -92,16 +95,33 @@ export const computeStats = (messages) => {
         if (!responseTimesByParticipant[sender]) responseTimesByParticipant[sender] = [];
         responseTimesByParticipant[sender].push(timeDiff);
       }
+
+      // Burst Detection (gap <= 5 mins)
+      if (timeDiff <= 5 * 60 * 1000) {
+        currentBurst.msgs.push(msg);
+      } else {
+        if (currentBurst.msgs.length >= 10) {
+           currentBurst.endMs = previousMessage.timestamp_ms;
+           currentBurst.durationMs = currentBurst.endMs - currentBurst.startMs;
+           bursts.push(currentBurst);
+        }
+        currentBurst = { msgs: [msg], startMs: msg.timestamp_ms, initiator: msg.sender_name };
+      }
     }
     
     previousMessage = msg;
   });
   
-  // Close the last conversation
+  // Close the last conversation & burst
   if (currentConversation.messageCount > 0) {
     currentConversation.endMs = previousMessage.timestamp_ms;
     currentConversation.ender = previousMessage.sender_name;
     conversations.push(currentConversation);
+  }
+  if (currentBurst.msgs.length >= 10) {
+    currentBurst.endMs = previousMessage.timestamp_ms;
+    currentBurst.durationMs = currentBurst.endMs - currentBurst.startMs;
+    bursts.push(currentBurst);
   }
 
   // --- Compile Final Specialized Metrics ---
@@ -168,5 +188,34 @@ export const computeStats = (messages) => {
   }
   stats.streaks = { totalActiveDays: dates.length, longestStreak, currentStreak, maxGapDays: maxGap };
   
+  // 5. Bursts
+  let maxBurstMsgs = 0;
+  let maxBurstDuration = 0;
+  let longestBurst = null;
+  let busiestBurst = null;
+  let burstInitiators = {};
+  
+  bursts.forEach(b => {
+    burstInitiators[b.initiator] = (burstInitiators[b.initiator] || 0) + 1;
+    if (b.msgs.length > maxBurstMsgs) {
+      maxBurstMsgs = b.msgs.length;
+      busiestBurst = b;
+    }
+    if (b.durationMs > maxBurstDuration) {
+      maxBurstDuration = b.durationMs;
+      longestBurst = b;
+    }
+  });
+  
+  stats.bursts = {
+    total: bursts.length,
+    averageLength: bursts.length > 0 ? Math.round(bursts.reduce((a, b) => a + b.msgs.length, 0) / bursts.length) : 0,
+    averageDuration: bursts.length > 0 ? bursts.reduce((a, b) => a + b.durationMs, 0) / bursts.length : 0,
+    busiestBurst: busiestBurst,
+    longestBurst: longestBurst,
+    initiators: burstInitiators,
+    timeline: bursts
+  };
+
   return stats;
 };

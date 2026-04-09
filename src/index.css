@@ -400,6 +400,20 @@ button {
   100% { transform: scale(0.95) rotate(-2deg); opacity: 0.9; }
 }
 
+.burst-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.5rem; }
+@media (min-width: 1024px) { .burst-grid { grid-template-columns: repeat(4, 1fr); } }
+.highlight-box { position: relative; overflow: hidden; border-color: rgba(139, 92, 246, 0.4); }
+.highlight-box::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at center, var(--primary-transparent) 0%, transparent 70%); }
+.pulse-number { animation: heartbeat 2s infinite; display: inline-block; }
+.burst-icon { animation: vibrate 3s infinite; }
+@keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); text-shadow: 0 0 10px var(--primary); } }
+@keyframes vibrate { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-5deg) scale(1.1); } 75% { transform: rotate(5deg) scale(1.1); } }
+.burst-highlight-panel { margin-top: 2rem; padding: 1.5rem; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--glass-border); text-align: left; }
+.burst-date-tag { font-size: 0.75rem; color: var(--secondary); background: var(--secondary-transparent); padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block; margin-bottom: 1rem; margin-top: 0.25rem;}
+.burst-timeline { display: flex; flex-direction: column; gap: 0.5rem; }
+.burst-msg-chip { font-size: 0.875rem; padding: 0.5rem 1rem; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-align: left; }
+.more-chip { text-align: center; border-left: none; background: transparent; color: var(--text-secondary); font-style: italic; }
+
 /* --- CHAT VIEWER (ChatViewer.jsx) --- */
 .chat-viewer { display: flex; flex-direction: column; height: 80vh; position: relative; }
 .chat-controls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid var(--glass-border); background: var(--glass-bg); border-radius: 16px 16px 0 0; }
@@ -441,5 +455,12 @@ button {
 
 .scroll-bottom-btn { position: absolute; bottom: 1.5rem; right: 1.5rem; padding: 0.75rem; background: var(--primary); color: white; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10; transition: transform 0.2s; }
 .scroll-bottom-btn:hover { transform: scale(1.1); }
+
+.highlight-jump { animation: jumpPulse 3s ease; }
+@keyframes jumpPulse {
+  0% { transform: scale(1); background: rgba(139, 92, 246, 0.4); border-radius: 12px; }
+  10% { transform: scale(1.02); background: rgba(139, 92, 246, 0.8); }
+  100% { transform: scale(1); background: transparent; }
+}
 
 @media (max-width: 640px) { .hidden-sm { display: none; } }

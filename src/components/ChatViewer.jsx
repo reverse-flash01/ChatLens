@@ -1,9 +1,9 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { format, isSameDay } from 'date-fns';
 import { ArrowDown, Search } from 'lucide-react';
 import { Image as ImageIcon } from 'lucide-react';
 
-const ChatViewer = ({ data }) => {
+const ChatViewer = ({ data, jumpDateMs }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [displayCount, setDisplayCount] = useState(100);
   const containerRef = useRef(null);
@@ -62,6 +62,24 @@ const ChatViewer = ({ data }) => {
 
   let lastDate = null;
 
+  useEffect(() => {
+    if (jumpDateMs) {
+      setSearchTerm('');
+      const index = data.messages.findIndex(m => m.timestamp_ms >= jumpDateMs);
+      if (index !== -1) {
+        setDisplayCount(Math.max(100, index + 50));
+        setTimeout(() => {
+           const el = document.getElementById(`msg-${jumpDateMs}`);
+           if (el && containerRef.current) {
+              containerRef.current.scrollTop = el.offsetTop - 100;
+              el.classList.add('highlight-jump');
+              setTimeout(() => el.classList.remove('highlight-jump'), 4000);
+           }
+        }, 300);
+      }
+    }
+  }, [jumpDateMs, data.messages]);
+
   return (
     <div className="chat-viewer glass-panel fade-in">
       <div className="chat-controls">
@@ -117,7 +135,7 @@ const ChatViewer = ({ data }) => {
                 </div>
               )}
 
-              <div className={`message-row ${isUser ? 'is-user' : ''}`}>
+              <div id={`msg-${msg.timestamp_ms}`} className={`message-row ${isUser ? 'is-user' : ''}`}>
                 {!isUser && (
                   <div
                     className="avatar"
