@@ -5,6 +5,7 @@ import { Image as ImageIcon } from 'lucide-react';
 
 const ChatViewer = ({ data, jumpDateMs }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [startIndex, setStartIndex] = useState(0);
   const [displayCount, setDisplayCount] = useState(100);
   const containerRef = useRef(null);
 
@@ -22,21 +23,25 @@ const ChatViewer = ({ data, jumpDateMs }) => {
     return data.messages.filter(m => m.content && m.content.toLowerCase().includes(term));
   }, [data.messages, searchTerm]);
 
-  const messagesToDisplay = filteredMessages.slice(0, displayCount);
+  const messagesToDisplay = filteredMessages.slice(startIndex, startIndex + displayCount);
 
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
     if (scrollHeight - scrollTop <= clientHeight * 2) {
-      if (displayCount < filteredMessages.length) {
-        setDisplayCount(prev => Math.min(prev + 100, filteredMessages.length));
+      if (startIndex + displayCount < filteredMessages.length) {
+        setDisplayCount(prev => Math.min(prev + 100, filteredMessages.length - startIndex));
       }
     }
   };
 
   const scrollToBottom = () => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
+    setStartIndex(Math.max(0, filteredMessages.length - 100));
+    setDisplayCount(100);
+    setTimeout(() => {
+      if (containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }
+    }, 100);
   };
 
   const jumpToDate = (e) => {
@@ -45,7 +50,8 @@ const ChatViewer = ({ data, jumpDateMs }) => {
 
     const index = filteredMessages.findIndex(m => m.timestamp_ms >= targetDate);
     if (index !== -1) {
-      setDisplayCount(Math.max(100, index + 50));
+      setStartIndex(Math.max(0, index - 10)); // Give 10 messages of preceding context
+      setDisplayCount(100);
     }
   };
 
@@ -67,7 +73,8 @@ const ChatViewer = ({ data, jumpDateMs }) => {
       setSearchTerm('');
       const index = data.messages.findIndex(m => m.timestamp_ms >= jumpDateMs);
       if (index !== -1) {
-        setDisplayCount(Math.max(100, index + 50));
+        setStartIndex(Math.max(0, index - 5));
+        setDisplayCount(100);
         setTimeout(() => {
            const el = document.getElementById(`msg-${jumpDateMs}`);
            if (el && containerRef.current) {
@@ -89,7 +96,7 @@ const ChatViewer = ({ data, jumpDateMs }) => {
             type="text"
             placeholder="Search messages..."
             value={searchTerm}
-            onChange={(e) => { setSearchTerm(e.target.value); setDisplayCount(100); }}
+            onChange={(e) => { setSearchTerm(e.target.value); setStartIndex(0); setDisplayCount(100); }}
             className="search-input"
           />
         </div>
@@ -113,6 +120,21 @@ const ChatViewer = ({ data, jumpDateMs }) => {
         className="messages-list"
         onScroll={handleScroll}
       >
+        {startIndex > 0 && (
+          <div style={{ textAlign: 'center', padding: '1rem', borderBottom: '1px solid var(--glass-border)' }}>
+            <button 
+              className="btn-secondary" 
+              onClick={() => {
+                const shift = Math.min(100, startIndex);
+                setStartIndex(prev => prev - shift);
+                setDisplayCount(prev => prev + shift);
+              }}
+            >
+              ⬆ Load Previous Messages
+            </button>
+          </div>
+        )}
+
         {messagesToDisplay.map((msg, idx) => {
           const isUser = msg.sender_name === primaryUser;
           const msgDate = new Date(msg.timestamp_ms);
