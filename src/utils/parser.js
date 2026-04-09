@@ -22,16 +22,19 @@ export const parseInstagramZip = async (files) => {
         
         // Process messages
         if (data.messages && Array.isArray(data.messages)) {
-          const parsedMsgs = data.messages.map(msg => ({
-            sender_name: msg.sender_name ? decodeUtf8(msg.sender_name) : 'Unknown',
-            timestamp_ms: msg.timestamp_ms || new Date(msg.timestamp).getTime() || Date.now(),
-            content: msg.content ? decodeUtf8(msg.content) : null,
-            photos: msg.photos || [],
-            videos: msg.videos || [],
-            is_deleted: msg.is_deleted || false,
-            reactions: msg.reactions || [],
-            type: msg.type || 'Generic'
-          }));
+          const parsedMsgs = data.messages.map(msg => {
+            const reels = msg.share && typeof msg.share.link === 'string' && (msg.share.link.includes('instagram.com/reel/') || msg.share.link.includes('instagram.com/p/') || msg.share.link.includes('instagram.com/tv/')) ? [{ uri: msg.share.link }] : [];
+            return {
+              sender_name: msg.sender_name ? decodeUtf8(msg.sender_name) : 'Unknown',
+              timestamp_ms: msg.timestamp_ms || new Date(msg.timestamp).getTime() || Date.now(),
+              content: msg.content ? decodeUtf8(msg.content) : null,
+              photos: msg.photos || [],
+              videos: [...(msg.videos || []), ...reels],
+              is_deleted: msg.is_deleted || false,
+              reactions: msg.reactions || [],
+              type: msg.type || 'Generic'
+            };
+          });
           
           parsedMsgs.forEach(m => participants.add(m.sender_name));
           allMessages = allMessages.concat(parsedMsgs);
@@ -127,6 +130,8 @@ export const parseInstagramZip = async (files) => {
                   if (lowerHref.endsWith('.jpg') || lowerHref.endsWith('.png') || lowerHref.endsWith('.jpeg')) {
                      if (!photos.some(p => p.uri === href)) photos.push({ uri: href });
                   } else if (lowerHref.endsWith('.mp4') || lowerHref.endsWith('.mov')) {
+                     if (!videos.some(v => v.uri === href)) videos.push({ uri: href });
+                  } else if (lowerHref.includes('instagram.com/reel/') || lowerHref.includes('instagram.com/p/') || lowerHref.includes('instagram.com/tv/')) {
                      if (!videos.some(v => v.uri === href)) videos.push({ uri: href });
                   }
                 }
