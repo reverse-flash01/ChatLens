@@ -88,7 +88,7 @@ const Dashboard = ({ data, onJump }) => {
 
   return (
     <div className="dashboard fade-in slide-in">
-      
+
       {/* Date Timeline Filter */}
       <div className="timeline-filter glass-panel">
         <div className="panel-header">
@@ -101,8 +101,8 @@ const Dashboard = ({ data, onJump }) => {
         </div>
         <div className="timeline-slider-wrapper">
           {yearMarkers.map(m => (
-            <div 
-              key={m.year} 
+            <div
+              key={m.year}
               className="timeline-marker"
               style={{ left: `${m.pct}%` }}
             >
@@ -111,17 +111,17 @@ const Dashboard = ({ data, onJump }) => {
             </div>
           ))}
 
-          <div 
+          <div
             className="timeline-popup"
-            style={{ 
-              left: `calc(${((sliderValue - minTime) / Math.max(1, maxTime - minTime)) * 100 || 0}%)` 
+            style={{
+              left: `calc(${((sliderValue - minTime) / Math.max(1, maxTime - minTime)) * 100 || 0}%)`
             }}
           >
             {format(new Date(sliderValue), 'yyyy, MMMM')}
           </div>
-          <input 
-            type="range" 
-            min={minTime} 
+          <input
+            type="range"
+            min={minTime}
             max={maxTime}
             value={sliderValue}
             onChange={(e) => setSliderValue(parseInt(e.target.value))}
@@ -137,33 +137,38 @@ const Dashboard = ({ data, onJump }) => {
 
       {/* Overview Cards */}
       <div className="stats-grid">
-        <StatCard 
-          icon={MessageCircle} 
-          title="Total Messages" 
-          value={stats.totalMessages.toLocaleString()} 
+        <StatCard
+          icon={MessageCircle}
+          title="Total Messages"
+          value={stats.totalMessages.toLocaleString()}
         />
-        <StatCard 
-          icon={ImageIcon} 
-          title="Total Attachments" 
-          value={stats.totalAttachments.toLocaleString()} 
+        <StatCard
+          icon={ImageIcon}
+          title="Total Attachments"
+          value={stats.totalAttachments.toLocaleString()}
         />
         <div className="breakdown-card glass-card">
           <h3 className="breakdown-title">Message Breakdown</h3>
           <div className="breakdown-list">
-            {Object.entries(stats.messagesByParticipant).map(([name, count]) => {
-              const percentage = ((count / stats.totalMessages) * 100).toFixed(1);
-              return (
-                <div key={name} className="breakdown-item">
-                  <div className="breakdown-labels">
-                    <span className="breakdown-name">{name}</span>
-                    <span className="breakdown-count">{count.toLocaleString()} ({percentage}%)</span>
+            {Object.entries(stats.messagesByParticipant)
+              .sort((a, b) => b[1] - a[1])
+              .map(([name, count]) => {
+                const percentage = ((count / stats.totalMessages) * 100).toFixed(1);
+                // System messages and bots cause clutter with 0.0% volume
+                if (percentage === "0.0") return null;
+
+                return (
+                  <div key={name} className="breakdown-item">
+                    <div className="breakdown-labels">
+                      <span className="breakdown-name">{name}</span>
+                      <span className="breakdown-count">{count.toLocaleString()} ({percentage}%)</span>
+                    </div>
+                    <div className="progress-bar">
+                      <div className="progress-fill" style={{ width: `${percentage}%` }}></div>
+                    </div>
                   </div>
-                  <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: `${percentage}%` }}></div>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
       </div>
@@ -175,15 +180,15 @@ const Dashboard = ({ data, onJump }) => {
             <Clock className="panel-icon" />
             <h2 className="panel-title">Activity Time Trends</h2>
           </div>
-          
+
           <h3 className="chart-title">By Hour of Day</h3>
           <div className="chart-wrapper area-chart-wrapper">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={hourOfDayData}>
                 <defs>
                   <linearGradient id="colorMessages" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} />
@@ -200,7 +205,7 @@ const Dashboard = ({ data, onJump }) => {
               <BarChart data={dayOfWeekData}>
                 <XAxis dataKey="name" stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip content={<CustomTooltip />} cursor={{fill: 'var(--glass-bg)'}} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--glass-bg)' }} />
                 <Bar dataKey="messages" fill="var(--secondary)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -219,14 +224,14 @@ const Dashboard = ({ data, onJump }) => {
                 <div className="emoji-card-hover-bg"></div>
                 <span className="emoji-char">{emoji}</span>
                 <span className="emoji-count">{data.total.toLocaleString()}</span>
-                
+
                 <div className="emoji-distribution">
                   {Object.entries(data.byParticipant).map(([name, count], i) => {
                     const pct = (count / data.total) * 100;
                     return (
-                      <div 
-                        key={name} 
-                        className={`emoji-dot ${i % 2 === 0 ? 'dot-primary' : 'dot-secondary'}`} 
+                      <div
+                        key={name}
+                        className={`emoji-dot ${i % 2 === 0 ? 'dot-primary' : 'dot-secondary'}`}
                         style={{ width: `${pct}%` }}
                         title={`${name}: ${count}`}
                       ></div>
@@ -239,7 +244,7 @@ const Dashboard = ({ data, onJump }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Advanced Analytics Modules */}
       <AdvancedAnalytics stats={stats} participants={data.participants} onJump={onJump} />
     </div>
