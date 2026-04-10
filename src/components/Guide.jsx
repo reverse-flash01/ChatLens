@@ -58,9 +58,8 @@ const Guide = () => {
   return (
     <div className="guide-page fade-in">
       <div className="guide-header">
-        <HelpCircle size={48} className="guide-main-icon" />
         <h1 className="guide-title gradient-text">How to Export Your Chat</h1>
-        <p className="guide-subtitle">Follow these steps to securely download your Instagram history for local analysis.</p>
+        <p className="guide-subtitle">Follow these steps to securely download your Instagram history</p>
       </div>
 
       <div className="guide-steps">
