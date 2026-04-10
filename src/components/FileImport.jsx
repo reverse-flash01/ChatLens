@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, X, File as FileIcon, AlertCircle, BarChart2, MessageSquare, Shield } from 'lucide-react';
 
-const FileImport = ({ onDataParsed }) => {
+const FileImport = ({ onDataParsed, onShowGuide }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [filesList, setFilesList] = useState([]);
   const [error, setError] = useState(null);
@@ -147,6 +147,19 @@ const FileImport = ({ onDataParsed }) => {
               <p>Zero servers involved. All parsing happens completely safely inside your local browser.</p>
             </div>
           </div>
+        </div>
+
+        <div className="guide-cta" style={{ marginTop: '2rem', marginBottom: '1rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            Don't know how to export your Instagram chat? 
+            <button 
+              onClick={() => onShowGuide()}
+              className="btn-text" 
+              style={{ color: 'var(--primary)', marginLeft: '0.5rem', fontWeight: 600, border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              Read our Guide
+            </button>
+          </p>
         </div>
       </div>
 
